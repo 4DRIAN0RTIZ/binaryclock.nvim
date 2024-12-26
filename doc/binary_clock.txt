@@ -1,0 +1,31 @@
+*binary_clock.txt*  Binary Clock Plugin for Neovim
+
+binary_clock.txt - Plugin Documentation
+===========================================
+Plugin name: binary_clock
+Version: 1.0
+Author: 4DRIAN0RTIZ
+
+*binary_clock*
+
+Introduction
+============
+This plugin displays a binary clock in a floating window in Neovim. The clock can show the time and date in binary format using customizable symbols.
+
+Configuration
+=============
+*binary_clock-config*
+
+The default configuration of the plugin is as follows:
+
+```lua
+local M = {}
+M.config = {
+  show = true,
+  show_date = false,
+  sunday_start_week = false,
+  symbols = {
+    on = "█",
+    off = "░",
+  },
+}
