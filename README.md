@@ -2,6 +2,8 @@
 
 This Neovim plugin displays a binary clock in a floating window.
 
+![capture](https://i.ibb.co/MMty8jm/Captura-de-pantalla-2024-12-26-151040.png)
+
 ## Installation
 
 You can install this plugin using [packer.nvim](https://github.com/wbthomason/packer.nvim):
