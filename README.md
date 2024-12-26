@@ -7,15 +7,18 @@ This Neovim plugin displays a binary clock in a floating window.
 You can install this plugin using [packer.nvim](https://github.com/wbthomason/packer.nvim):
 
 ```lua
-use {
-  '4DRIAN0RTIZ/binaryclock.nvim',
-  config = function()
-    require('binary_clock').setup({
-      win_width = 12,
-      win_height = 10,
-      border = 'rounded',
-      symbols = { on = "█", off = "░" }
-    })
-  end
-}
+use "4DRIAN0RTIZ/binaryclock.nvim"
+```
+
+## Configuration
+
+This is a default configuration
+
+```lua
+require('binary_clock').setup({
+  show = true,
+  show_date = false,
+  sunday_start_week = false,
+  symbols = { on = "█", off = "░" }
+})
 ```
