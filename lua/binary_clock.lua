@@ -16,19 +16,11 @@ M.config = {
 function M.setup(options)
   M.config = vim.tbl_deep_extend("force", M.config, options or {})
 
-  if win_id and vim.api.nvim_win_is_valid(win_id) then
-    apply_config()
-  end
-
   if M.config.show and not win_id then
     M.show_binary_clock(M.config.show_date)
   elseif M.config.show and win_id then
     M.close_binary_clock()
   end
-end
-
-local function apply_config()
-  if not win_id or not vim.api.nvim_win_is_valid(win_id) then return end
 end
 
 local function get_time()
@@ -59,13 +51,16 @@ local function update_binary_clock()
     binary_time.hour,
     "",
     binary_time.minute,
-    "",
-    binary_time.weekday,
-    "",
-    binary_time.day,
-    "",
-    binary_time.month,
   }
+
+  if M.config.show_date then
+    table.insert(lines, "")
+    table.insert(lines, binary_time.weekday)
+    table.insert(lines, "")
+    table.insert(lines, binary_time.day)
+    table.insert(lines, "")
+    table.insert(lines, binary_time.month)
+  end
 
   local buf = vim.api.nvim_win_get_buf(win_id)
   vim.api.nvim_buf_set_option(buf, 'modifiable', true)
@@ -78,7 +73,7 @@ local function update_window_position()
     local width = vim.api.nvim_get_option("columns")
     local height = vim.api.nvim_get_option("lines")
     local win_width = 12
-    local win_height = 10
+    local win_height = M.config.show_date and 10 or 4
     local row = height - win_height - 3
     local col = width - win_width - 1
     vim.api.nvim_win_set_config(win_id, {
@@ -106,6 +101,8 @@ end
 
 function M.show_binary_clock(show_date)
   if win_id and vim.api.nvim_win_is_valid(win_id) then return end
+
+  M.config.show_date = show_date
 
   local binary_time = get_binary_time()
   local lines = {
@@ -145,7 +142,6 @@ function M.show_binary_clock(show_date)
     border = 'rounded',
   })
 
-  apply_config()
   start_timer()
 
   vim.cmd([[
@@ -172,11 +168,25 @@ function M.toggle_binary_clock()
   if win_id and vim.api.nvim_win_is_valid(win_id) then
     M.close_binary_clock()
   else
-    M.show_binary_clock()
+    M.show_binary_clock(M.config.show_date)
   end
 end
 
 M.update_window_position = update_window_position
+
+local function handle_boolean_option(option_name, param)
+  if param == "true" or param == "false" then
+    local value = (param == "true")
+    M.config[option_name] = value
+    if win_id and vim.api.nvim_win_is_valid(win_id) then
+      M.close_binary_clock()
+      M.show_binary_clock(M.config.show_date)
+    end
+    vim.notify(option_name:gsub("_", " ") .. " is now " .. tostring(value), vim.log.levels.INFO)
+  else
+    vim.notify("Invalid parameter for " .. option_name .. ". Use true or false.", vim.log.levels.ERROR)
+  end
+end
 
 function M.handle_subcommand(subcommand)
   local args = vim.split(subcommand, " ")
@@ -193,27 +203,9 @@ function M.handle_subcommand(subcommand)
     M.toggle_binary_clock()
     vim.notify("BinaryClock toggled", vim.log.levels.INFO)
   elseif cmd == "sunday_start_week" then
-    if param == "true" or param == "false" then
-      M.config.sunday_start_week = (param == "true")
-      if win_id and vim.api.nvim_win_is_valid(win_id) then
-        M.close_binary_clock()
-        M.show_binary_clock(M.config.show_date)
-      end
-      vim.notify("Sunday start week is now " .. tostring(M.config.sunday_start_week), vim.log.levels.INFO)
-    else
-      vim.notify("Invalid parameter for sunday_start_week. Use true or false.", vim.log.levels.ERROR)
-    end
+    handle_boolean_option("sunday_start_week", param)
   elseif cmd == "show_date" then
-    if param == "true" or param == "false" then
-      M.config.show_date = (param == "true")
-      if win_id and vim.api.nvim_win_is_valid(win_id) then
-        M.close_binary_clock()
-        M.show_binary_clock(M.config.show_date)
-      end
-      vim.notify("Show date is now " .. tostring(M.config.show_date), vim.log.levels.INFO)
-    else
-      vim.notify("Invalid parameter for show_date. Use true or false.", vim.log.levels.ERROR)
-    end
+    handle_boolean_option("show_date", param)
   else
     vim.notify("Subcommand not recognized: " .. cmd, vim.log.levels.ERROR)
   end
